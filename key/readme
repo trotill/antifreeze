@@ -1,0 +1,6 @@
+JWT
+openssl genrsa -out private.pem 2048
+openssl rsa -in private.pem -outform PEM -pubout -out public.pem
+
+HTTP2 Self Signed
+openssl req  -nodes -new -x509  -keyout http2_private.key -out http2_cert.crt
