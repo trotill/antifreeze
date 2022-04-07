@@ -11,6 +11,7 @@
     "@koa/cors": "^3.1.0",
     "@microsoft/fetch-event-source": "^2.0.1",
     "dotenv": "^10.0.0",
+    "eslint-config-standard": "^16.0.3",
     "joi": "^17.6.0",
     "joi-router": "^0.0.9",
     "jshashes": "^1.0.8",
@@ -24,6 +25,7 @@
     "sqlite3": "^5.0.2"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.17.0",
     "sequelize-cli": "^6.2.0"
   },
   "description": "npx sequelize-cli model:generate --name user --attributes login:string,password:string,firstName:string,lastName:string,email:string",

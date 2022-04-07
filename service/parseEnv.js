@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import dotenv from 'dotenv'
 
-let env=dotenv.config({path: '.env'})
-console.log(env);
+const env = dotenv.config({ path: '.env' })
+console.log(env)

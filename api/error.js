@@ -1,4 +1,4 @@
-export const error={
-    tokenError:"tokenError",
-    loginError:'loginError'
+export const error = {
+  tokenError: 'tokenError',
+  loginError: 'loginError'
 }
