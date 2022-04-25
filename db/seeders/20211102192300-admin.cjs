@@ -9,6 +9,7 @@ module.exports = {
     console.log('admin password',passwd)
     return queryInterface.bulkInsert('user', [{
       login: 'admin',
+      group: 'admin',
       firstName:'firstName',
       password: new jshashes.SHA1().b64(login + password),
       lastName:'lastName',

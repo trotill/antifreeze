@@ -1,10 +1,10 @@
-import { login, whoAmi } from '../controller/auth.js'
-import { getWhoAmiBodyOut, postLoginBodyIn, postLoginBodyOut } from '../schema/schema.js'
+import { login, doAuth, whoAmi, regenToken } from '../controller/auth.js'
+import { getRefreshToken, getWhoAmiBodyOut, postLoginBodyIn, postLoginBodyOut } from '../schema/schema.js'
 
 const authRoute = [
   {
     method: 'post',
-    path: '/login',
+    path: '/api/login',
     validate: {
       type: 'json',
       body: postLoginBodyIn,
@@ -17,7 +17,7 @@ const authRoute = [
     handler: [login]
   }, {
     method: 'get',
-    path: '/whoAmi',
+    path: '/api/whoAmi',
     validate: {
       output: {
         200: {
@@ -25,7 +25,19 @@ const authRoute = [
         }
       }
     },
-    handler: [whoAmi]
+    handler: [doAuth, whoAmi]
+  },
+  {
+    method: 'get',
+    path: '/api/refresh',
+    validate: {
+      output: {
+        200: {
+          body: getRefreshToken
+        }
+      }
+    },
+    handler: [regenToken]
   }]
 
 export { authRoute }

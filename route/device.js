@@ -1,12 +1,12 @@
 import Joi from 'joi'
 import { sendDataMQ } from '../controller/device.js'
-import { needToken } from '../controller/auth.js'
+import { doAuth } from '../controller/auth.js'
 import { postSetDevDataBodyOut } from '../schema/schema.js'
 
 const deviceRoute = [
   {
     method: 'post',
-    path: '/setDevData',
+    path: '/api/setDevData',
     validate: {
       type: 'json',
       body: Joi.object(),
@@ -16,7 +16,7 @@ const deviceRoute = [
         }
       }
     },
-    handler: [needToken, sendDataMQ]
+    handler: [doAuth, sendDataMQ]
   }]
 
 export { deviceRoute }

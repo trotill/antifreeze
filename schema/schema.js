@@ -15,7 +15,8 @@ const responseFormatJoi = (data) => Joi.object().keys({
 })
 
 export const getWhoAmiBodyOut = responseFormatJoi(Joi.object().keys({
-  login: Joi.string().allow('')
+  login: Joi.string().allow(''),
+  group: Joi.string().allow('')
 }).allow(null))
 
 export const postSetDevDataBodyOut = responseFormatJoi(null).allow(null)
@@ -26,3 +27,8 @@ export const postLoginBodyIn = Joi.object().keys({
 })
 
 export const postLoginBodyOut = responseFormatJoi(null).allow(null)
+
+export const getRefreshToken = Joi.object().keys({
+  access: Joi.string(),
+  refresh: Joi.string()
+})

@@ -8,7 +8,6 @@ export default new class {
     this.publicKey = fs.readFileSync(path.resolve('../back/key/public.pem')).toString()
     this.privateKey = fs.readFileSync(path.resolve('../back/key/private.pem')).toString()
   }
-  // v2
 
   async checkLogin ({ password, login, modelDb }) {
     const findUser = await modelDb.userModel.findAll({
@@ -27,83 +26,64 @@ export default new class {
     return (findUser[0].password === password)
   }
 
-  async checkTokenAccessExpired ({ accessDec, refreshDec, modelDb }) {
-    if ((accessDec.err === 'TokenExpiredError') && (refreshDec.err === '')) {
-      // find password from DB and regen tokens
-      const login = refreshDec.decoded.login
-      const findUser = await modelDb.userModel.findAll({
-        where: {
-          login
-        }
-      })
-      // console.log('findUser',findUser);
-      if (findUser.length !== 0) {
-        const { access, refresh } = await this.regenJWT({ login })
-        console.log('access and refresh regenerated', refreshDec)
-        return {
-          error: null,
-          login,
-          token: {
-            access,
-            refresh
-          }
-        }
+  async checkToken ({ token }) {
+    const tokenDec = await this.checkJWT({ token })
+
+    if (!tokenDec.decoded) {
+      return {
+        login: null,
+        error: error.tokenError
       }
-    }
-    return null
-  }
-
-  async checkToken ({ token, modelDb }) {
-    const accessDec = await this.checkJWT({ token: token.access })
-    const refreshDec = await this.checkJWT({ token: token.refresh })
-
-    const result = await this.checkTokenAccessExpired({ accessDec, refreshDec, modelDb })
-    if (result) return result
-
-    if ((accessDec.err === '') && (refreshDec.err === '')) {
+    } else {
       console.log('good tokens')
       return {
-        login: refreshDec.decoded.login,
-        error: null,
-        token
+        login: tokenDec.decoded.login,
+        error: null
       }
     }
-    console.log('access and refresh obsolete')
-    return {
-      login: null,
-      error: error.tokenError,
-      token: null
-    }
+  }
+
+  async getUserInfo ({ login, modelDb }) {
+    return modelDb.userModel.findOne({
+      where: {
+        login
+      }
+    }).then((v) => v.toJSON())
   }
 
   async checkJWT ({ token }) {
     return new Promise((resolve) => {
-      // console.log('publicKey', this.publicKey);
       try {
         jwt.verify(token, this.publicKey, function (err, decoded) {
-          // console.log('succes JWT', decoded);
-          let errName = ''
-          if (err) {
-            errName = err.name
-            // console.log('errName',err.name,'expiredAt',err.expiredAt)
-          }
-          resolve({ err: errName, decoded })
+          resolve({ err, decoded })
         })
       } catch (err) {
-        // console.log('error JWT', err);
         resolve({ err: 'UNDEF_ERROR', decoded: {} })
       }
     })
   }
 
-  async regenJWT ({ password, login }) {
-    const accessToken = jwt.sign({ login: login, type: 'access' }, this.privateKey, { algorithm: 'RS256', expiresIn: process.env.ACCESS_TIMEOUT })
-    const refreshToken = jwt.sign({ login: login, type: 'refresh' }, this.privateKey, { algorithm: 'RS256', expiresIn: process.env.REFRESH_TIMEOUT })
-    // console.log("accessToken",accessToken);
-    // console.log("refreshToken",refreshToken);
+  async regenJwtPairByLogin ({ login }) {
+    const accessToken = jwt.sign({ login, type: 'access' }, this.privateKey, { algorithm: 'RS256', expiresIn: process.env.ACCESS_TIMEOUT })
+    const refreshToken = jwt.sign({ login, type: 'refresh' }, this.privateKey, { algorithm: 'RS256', expiresIn: process.env.REFRESH_TIMEOUT })
     return {
       access: accessToken,
       refresh: refreshToken
     }
+  }
+
+  async regenJwtPairByRefresh ({ refresh }) {
+    const refreshDec = await this.checkJWT({ token: refresh })
+    if (refreshDec.decoded) {
+      const { login } = refreshDec.decoded
+      console.log('good refresh token')
+      const accessToken = jwt.sign({ login, type: 'access' }, this.privateKey, { algorithm: 'RS256', expiresIn: process.env.ACCESS_TIMEOUT })
+      const refreshToken = jwt.sign({ login, type: 'refresh' }, this.privateKey, { algorithm: 'RS256', expiresIn: process.env.REFRESH_TIMEOUT })
+      return {
+        access: accessToken,
+        refresh: refreshToken
+      }
+    }
+    return null
   }
 }()

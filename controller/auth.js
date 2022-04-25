@@ -4,10 +4,11 @@ import { error } from '../api/error.js'
 
 export async function login (ctx) {
   console.log('login', ctx.request.body)
+  const { login } = ctx.request.body
   let token = null
   const err = !await authService.checkLogin({ password: ctx.request.body.password, login: ctx.request.body.login, modelDb: ctx.inject.modelDb })
   if (!err) {
-    token = await authService.regenJWT(ctx.request.body)
+    token = await authService.regenJwtPairByLogin({ login })
   }
   ctx.response.body = responseFormat({
     error: err ? error.loginError : null,
@@ -17,42 +18,49 @@ export async function login (ctx) {
   ctx.status = (!err) ? 200 : 511
 };
 
-export async function needToken (ctx, next) {
-  if (ctx.request.header.token) {
-    const { modelDb } = ctx.inject
-    const tokenFromClient = JSON.parse(ctx.request.header.token)
-    const { error } = await authService.checkToken({ token: tokenFromClient, modelDb })
+export async function doAuth (ctx, next) {
+  const { access, accept } = ctx.request.header
+  if (access) {
+    const { error, login } = await authService.checkToken({ token: access })
     if (error) {
       ctx.status = 511
     } else {
-      next()
+      ctx.inject.login = login
+      await next()
+      if (accept !== 'text/event-stream') {
+        if (!ctx.response?.body?.meta) {
+          ctx.response.body = {
+            meta: {
+              token: {}
+            }
+          }
+        }
+
+        ctx.response.body.meta.token = await authService.regenJwtPairByLogin({ login })
+      }
     }
   } else { ctx.status = 401 }
 }
 export async function whoAmi (ctx) {
-  // if (await AuthService.checkLogin(ctx.request.body)){
-  // console.log(ctx.request.header)
+  const { login, modelDb } = ctx.inject
 
-  if (ctx.request.header.token) {
-    const tokenFromClient = JSON.parse(ctx.request.header.token)
-    const { token, login, error } = await authService.checkToken({ token: tokenFromClient, modelDb: ctx.inject.modelDb })
-
-    if (!error) {
-      ctx.response.body = responseFormat({
-        error,
-        token,
-        data: {
-          login
-        }
-      })
-    } else {
-      ctx.response.body = responseFormat({
-        error,
-        token: null,
-        data: null
-      })
+  const result = await authService.getUserInfo({ login, modelDb })
+  ctx.response.body = responseFormat({
+    data: {
+      login,
+      group: result.group
     }
-  }
-
+  })
   ctx.status = 200
+}
+
+export async function regenToken (ctx) {
+  const { refresh } = ctx.request.header
+  const result = await authService.regenJwtPairByRefresh({ refresh })
+  if (result) {
+    ctx.response.body = result
+    ctx.status = 200
+  } else {
+    ctx.status = 401
+  }
 }
