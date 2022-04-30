@@ -18,9 +18,18 @@ export async function sse (ctx) {
     stream.end()
     mqttService.unlinkClient({ id })
   }
+  ctx.request.socket.setTimeout(0)
+  ctx.req.socket.setNoDelay(true)
+  ctx.req.socket.setKeepAlive(true)
   ctx.req.on('close', () => end('close'))
   ctx.req.on('finish', () => end('finish'))
   ctx.req.on('error', () => end('error'))
   ctx.type = 'text/event-stream'
+  ctx.set('Connection', 'keep-alive')
+  ctx.set('Content-Type', 'text/event-stream')
+  ctx.set('Cache-Control', 'no-cache')
+  stream.on('close', () => {
+    console.log('stream close')
+  })
   ctx.body = stream
 }
