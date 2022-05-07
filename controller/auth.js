@@ -1,12 +1,13 @@
-import authService from '../service/auth.js'
+
 import { responseFormat } from '../api/response.js'
 import { error } from '../api/error.js'
 
 export async function login (ctx) {
+  const { authService } = ctx.inject
   console.log('login', ctx.request.body)
   const { login } = ctx.request.body
   let token = null
-  const err = !await authService.checkLogin({ password: ctx.request.body.password, login: ctx.request.body.login, modelDb: ctx.inject.modelDb })
+  const err = !await authService.checkLogin({ password: ctx.request.body.password, login: ctx.request.body.login })
   if (!err) {
     token = await authService.regenJwtPairByLogin({ login })
   }
@@ -19,6 +20,7 @@ export async function login (ctx) {
 };
 
 export async function doAuth (ctx, next) {
+  const { authService } = ctx.inject
   const { access, accept } = ctx.request.header
   if (access) {
     const { error, login } = await authService.checkToken({ token: access })
@@ -42,9 +44,9 @@ export async function doAuth (ctx, next) {
   } else { ctx.status = 401 }
 }
 export async function whoAmi (ctx) {
-  const { login, modelDb } = ctx.inject
+  const { login, authService } = ctx.inject
 
-  const result = await authService.getUserInfo({ login, modelDb })
+  const result = await authService.getUserInfo({ login })
   ctx.response.body = responseFormat({
     data: {
       login,
@@ -55,6 +57,7 @@ export async function whoAmi (ctx) {
 }
 
 export async function regenToken (ctx) {
+  const { authService } = ctx.inject
   const { refresh } = ctx.request.header
   const result = await authService.regenJwtPairByRefresh({ refresh })
   if (result) {

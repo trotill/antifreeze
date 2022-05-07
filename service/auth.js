@@ -3,27 +3,24 @@ import fs from 'fs'
 import path from 'path'
 import { error } from '../api/error.js'
 
-export default new class {
-  constructor () {
+export default class {
+  constructor (ctx) {
+    const { authRepository } = ctx
+
+    this.authRepository = authRepository
     this.publicKey = fs.readFileSync(path.resolve('../back/key/public.pem')).toString()
     this.privateKey = fs.readFileSync(path.resolve('../back/key/private.pem')).toString()
   }
 
-  async checkLogin ({ password, login, modelDb }) {
-    const findUser = await modelDb.userModel.findAll({
-      where: {
-        login: login
-      }
-    }).then((result) => {
-      return result.map(item => item.toJSON())
-    })
+  async checkLogin ({ password, login }) {
+    const findUser = await this.authRepository.findUserByLogin({ login })
     await new Promise(resolve => setTimeout(resolve, 100))
 
-    if (findUser.length === 0) { return false }
+    if (!findUser) { return false }
 
-    if (findUser[0].password !== password) { console.log('incorrect password') }
+    if (findUser.password !== password) { console.log('incorrect password') }
 
-    return (findUser[0].password === password)
+    return (findUser.password === password)
   }
 
   async checkToken ({ token }) {
@@ -43,12 +40,8 @@ export default new class {
     }
   }
 
-  async getUserInfo ({ login, modelDb }) {
-    return modelDb.userModel.findOne({
-      where: {
-        login
-      }
-    }).then((v) => v.toJSON())
+  async getUserInfo ({ login }) {
+    return this.authRepository.findUserByLogin({ login })
   }
 
   async checkJWT ({ token }) {
@@ -86,4 +79,4 @@ export default new class {
     }
     return null
   }
-}()
+}

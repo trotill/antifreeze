@@ -10,10 +10,20 @@ import http2 from 'http2'
 import fs from 'fs'
 import mqttService from './service/mq.js'
 import deviceServiceFactory from './service/device.js'
+import AuthRepository from './repositories/auth.js'
+import AuthService from './service/auth.js'
+
 const deviceService = deviceServiceFactory({ mqttService })
 
 async function run () {
   const modelDb = await dbService.init()
+  const context = {
+    mqttService,
+    deviceService,
+    authRepository: new AuthRepository(modelDb)
+  }
+  context.authService = new AuthService(context)
+
   const { PORT = 8080, HTTP2_MODE } = process.env
   const pubRouter = router()
   const app = new Koa()
@@ -36,11 +46,7 @@ async function run () {
 
   app.use(serve('front'))
   app.use(async (ctx, next) => {
-    ctx.inject = {
-      modelDb,
-      mqttService,
-      deviceService
-    }
+    ctx.inject = context
 
     await next()
   })

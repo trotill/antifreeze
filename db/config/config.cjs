@@ -10,5 +10,15 @@ module.exports = {
     define: {
       freezeTableName: true,
     }
+  },
+  "mocha": {
+    "username": "root",
+    "password": null,
+    "database": "database_mocha",
+    "storage": `mocha_${process.env.DB_PATH}`,
+    "dialect": "sqlite",
+    define: {
+      freezeTableName: true,
+    }
   }
 }

@@ -5,11 +5,14 @@
   "scripts": {
     "dev": "nodemon --inspect=localhost:9230 back.js",
     "migrate": "npx sequelize-cli db:migrate",
-    "seed": "npx sequelize-cli db:seed:all"
+    "seed": "npx sequelize-cli db:seed:all",
+    "test": "find . -name *.test.js -not -path \"./node_modules/*\"|xargs mocha"
+
   },
   "dependencies": {
     "@koa/cors": "^3.1.0",
     "@microsoft/fetch-event-source": "^2.0.1",
+    "chai": "^4.3.6",
     "dotenv": "^10.0.0",
     "eslint-config-standard": "^16.0.3",
     "joi": "^17.6.0",
@@ -19,6 +22,7 @@
     "koa": "^2.13.3",
     "koa-joi-router": "^8.0.0",
     "koa-static": "^5.0.0",
+    "mocha": "^10.0.0",
     "mqtt": "^4.3.7",
     "nodemon": "^2.0.13",
     "sequelize": "^6.9.0",
