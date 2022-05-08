@@ -9,16 +9,21 @@ import createEventMigration from '../../db/migrations/04-create-event.cjs'
 
 const { expect } = chai
 
-const mockData = [
+const mockDataAF = [
   {
     relay: { heater: 0, pump: 0 },
     powerLoss: 0,
     ac0: { voltage: 217.2, current: 0, power: 0, energy: 24467, freq: 49.9, powerFact: 0, alarm: 0 },
     device: { relayHeaterAvail: 1, relayPumpAvail: 1, acAvail: 1, pumpWorkTime: 1300, heaterWorkTime: 3700, pumpMaxPower: 1200 },
     autoMode: { mode: 0, state: 0 },
-    pumpWork: 0
+    pumpWork: 0,
+    rebootCntr:100,
   }
 ]
+const mockDataFD = [
+  {
+    rebootCntr:100,
+  }]
 describe('event service test', async function () {
   let queryInterface
   let eventInstance
@@ -37,10 +42,21 @@ describe('event service test', async function () {
     eventInstance.init()
   })
 
-  it('add events (addEventAF)', async () => {
-    await eventInstance.addEventAF(mockData[0])
-    mockData[0].ac0.voltage = 180
-    await eventInstance.addEventAF(mockData[0])
+  it('add events (admEventAF)', async () => {
+    await eventInstance.admEventAF(mockDataAF[0])
+    mockDataAF[0].ac0.voltage = 180
+    await eventInstance.admEventAF(mockDataAF[0])
+    const result=await eventInstance.readLastEvent()
+    const founded=result.find(({eventId,status})=>((eventId==='lowVolt')&&status))
+    expect(founded.status).be.eql(true)
+  })
+  it('add events (admEventFD)', async () => {
+    await eventInstance.admEventFD(mockDataFD[0])
+    mockDataFD[0].rebootCntr = 180
+    await eventInstance.admEventFD(mockDataFD[0])
+    const result= await eventInstance.readLastEvent()
+    const founded=result.find(({eventId,status})=>((eventId==='rebootFD')&&status))
+    expect(founded.status).be.eql(true)
   })
   it('read events from db (readEvent)', async () => {
     const result = await eventInstance.readEvent({

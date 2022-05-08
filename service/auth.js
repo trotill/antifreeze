@@ -11,7 +11,9 @@ export default class {
     this.publicKey = fs.readFileSync(path.resolve('../back/key/public.pem')).toString()
     this.privateKey = fs.readFileSync(path.resolve('../back/key/private.pem')).toString()
   }
-
+  async createUser(data){
+    return this.authRepository.createUser(data)
+  }
   async checkLogin ({ password, login }) {
     const findUser = await this.authRepository.findUserByLogin({ login })
     await new Promise(resolve => setTimeout(resolve, 100))

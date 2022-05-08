@@ -7,7 +7,6 @@
     "migrate": "npx sequelize-cli db:migrate",
     "seed": "npx sequelize-cli db:seed:all",
     "test": "find . -name *.test.js -not -path \"./node_modules/*\"|xargs mocha"
-
   },
   "dependencies": {
     "@koa/cors": "^3.1.0",

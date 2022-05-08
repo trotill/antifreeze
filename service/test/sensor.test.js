@@ -6,7 +6,7 @@ import createSensorMigration from '../../db/migrations/01-create-sensor.cjs'
 
 const { expect } = chai
 
-describe('sensor service test', async function () {
+describe('sensor repo test', async function () {
   let queryInterface
   let sensorRepository
   this.timeout(25000)
@@ -25,9 +25,9 @@ describe('sensor service test', async function () {
     const temp = 0
     const humidity = 0
     for (let n = 0; n < 100; n++) {
-      await sensorRepository.write({ voltage: voltage + n, power: power + n, current: current + (n * 0.01), temp: temp + (n * 0.01), humidity: humidity + n })
+      await sensorRepository.addOne({ voltage: voltage + n, power: power + n, current: current + (n * 0.01), temp: temp + (n * 0.01), humidity: humidity + n })
     }
-    const result = await sensorRepository.read({
+    const result = await sensorRepository.getList({
       offset: 0,
       limit: 1,
       order: 'desc'
@@ -35,7 +35,7 @@ describe('sensor service test', async function () {
     expect(result[0].voltage).be.eql(279)
   })
   it('read sensor data (read)', async () => {
-    const result = await sensorRepository.read({
+    const result = await sensorRepository.getList({
       where: {
         voltage: {
           [Op.gte]: 250
@@ -52,7 +52,7 @@ describe('sensor service test', async function () {
 
   it('remove obsolete (removeOldest)', async () => {
     await sensorRepository.removeOldest(50)
-    const result = await sensorRepository.read({})
+    const result = await sensorRepository.getList({})
     expect(result.length).be.eql(50)
   })
   after(async () => {

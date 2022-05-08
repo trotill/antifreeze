@@ -6,6 +6,7 @@ export default class LastEventRepository {
     this.sourceState = {}
   }
 
+
   async init () {
     const lastData = await this.model.findAll({}).then(r => r.map(item => item.toJSON()))
     lastData.forEach(({ eventId, value, status }) => {
@@ -32,7 +33,7 @@ export default class LastEventRepository {
       if (status === this.sourceState[stateItem]) continue
 
       this.sourceState[stateItem] = status
-      console.log(ts, stateItem, status, !!status, JSON.stringify(json), eventList[stateItem]?.prio ?? 100, 0, 0)
+     // console.log(ts, stateItem, status, !!status, JSON.stringify(json), eventList[stateItem]?.prio ?? 100, 0, 0)
       const prepared = {
         ts,
         eventId: stateItem,

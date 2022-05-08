@@ -7,7 +7,7 @@ export default class SensorRepository {
     this.sequelize = db.sequelize
   }
 
-  async write ({ voltage, power, current, temp, humidity }) {
+  async addOne ({ voltage, power, current, temp, humidity }) {
     const ts = Date.now()
     await this.model.create({
       ts,
@@ -19,7 +19,7 @@ export default class SensorRepository {
     })
   }
 
-  async read ({ where, limit = 1000, offset = 0, order = 'asc' }) {
+  async getList ({ where, limit = 1000, offset = 0, order = 'asc' }) {
     return this.model.findAll({ where, limit, offset, order: [['id', order]] }).then(r => r.map(item => item.toJSON()))
   }
 

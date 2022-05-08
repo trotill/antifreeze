@@ -3,6 +3,8 @@ import constData from '../api/const.js'
 export default class {
   constructor (ctx) {
     Object.assign(this, ctx)
+    this.rebootCntrAF = null
+    this.rebootCntrFD = null
   }
 
   /* |*
@@ -29,13 +31,7 @@ algoState
 rebootAF
 rebootFD
    */
-  addEventRebootAF () {
 
-  }
-
-  addEventRebootFD () {
-
-  }
 
   async init () {
     await this.lastEventRepository.init()
@@ -50,15 +46,27 @@ rebootFD
   }
 
   async readEvent ({ where = { }, limit = 1000, offset = 0, order = 'asc' }) {
-    return this.eventRepository.readEvent({ where, limit, offset, order: [['id', order]] })
+    return this.eventRepository.getList({ where, limit, offset, order: [['id', order]] })
   }
 
   async removeOldest (limit) {
     return this.eventRepository.removeOldest(limit)
   }
 
-  async addEventAF ({ relay, powerLoss, ac0, device, autoMode, pumpWork }) {
+  async admEventFD ({ rebootCntr }) {
     const ts = Date.now()
+    const rebootFD=((rebootCntr!==this.rebootCntrFD)&&(this.rebootCntrFD!==null))
+    this.rebootCntrFD=rebootCntr
+    const state = {
+      rebootFD
+    }
+    const changedState = await this.lastEventRepository.addLastEvent({ ts, state })
+    await this.eventRepository.addList({ changedState })
+  }
+  async admEventAF ({ relay, powerLoss, ac0, device, autoMode, pumpWork,rebootCntr }) {
+    const ts = Date.now()
+    const rebootAF=((rebootCntr!==this.rebootCntrAF)&&(this.rebootCntrAF!==null))
+    this.rebootCntrAF=rebootCntr
     const state = {
       highVolt: {
         state: (ac0.voltage > constData.highVoltage) ? ac0.voltage : null,
@@ -92,10 +100,11 @@ rebootFD
         info: {
           value: autoMode.state
         }
-      }
+      },
+      rebootAF
     }
 
     const changedState = await this.lastEventRepository.addLastEvent({ ts, state })
-    await this.eventRepository.addEvent({ changedState })
+    await this.eventRepository.addList({ changedState })
   }
 }

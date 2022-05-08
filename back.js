@@ -8,21 +8,29 @@ import { deviceRoute } from './route/device.js'
 import dbService from './db/dbService.cjs'
 import http2 from 'http2'
 import fs from 'fs'
-import mqttService from './service/mq.js'
+import MqttService from './service/mq.js'
 import deviceServiceFactory from './service/device.js'
 import AuthRepository from './repositories/auth.js'
+import SensorRepository from './repositories/sensor.js'
+import EventRepository from './repositories/event.js'
+import LastEventRepository from './repositories/lastEvent.js'
 import AuthService from './service/auth.js'
-
-const deviceService = deviceServiceFactory({ mqttService })
+import SensorService from './service/sensor.js'
+import EventService from './service/event.js'
 
 async function run () {
   const modelDb = await dbService.init()
   const context = {
-    mqttService,
-    deviceService,
+    sensorRepository:new SensorRepository(modelDb),
+    eventRepository:new EventRepository(modelDb),
+    lastEventRepository:new LastEventRepository(modelDb),
     authRepository: new AuthRepository(modelDb)
   }
+  context.sensorService=new SensorService(context)
   context.authService = new AuthService(context)
+  context.eventService = new EventService(context)
+  context.deviceService=deviceServiceFactory(context)
+  context.mqttService=new MqttService(context)
 
   const { PORT = 8080, HTTP2_MODE } = process.env
   const pubRouter = router()
@@ -63,6 +71,6 @@ async function run () {
       .listen(PORT, () => console.log('listening on port %i', PORT))
   } else { app.listen(PORT, () => console.log('listening on port %i', PORT)) }
 
-  mqttService.run()
+  context.mqttService.run()
 }
 run()
