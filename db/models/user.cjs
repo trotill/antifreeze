@@ -6,7 +6,10 @@ module.exports = (sequelize, DataTypes) => {
   class User extends Model {
   };
   User.init({
-    login: DataTypes.STRING,
+    login: {
+      type:DataTypes.STRING,
+      primaryKey: true
+    },
     group:DataTypes.STRING,
     password: DataTypes.STRING,
     firstName: DataTypes.STRING,
@@ -15,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'user',
+    freezeTableName: true
   });
   return User;
 };

@@ -7,41 +7,55 @@ export async function login (ctx) {
   console.log('login', ctx.request.body)
   const { login } = ctx.request.body
   let token = null
-  const err = !await authService.checkLogin({ password: ctx.request.body.password, login: ctx.request.body.login })
-  if (!err) {
-    token = await authService.regenJwtPairByLogin({ login })
+  const result = await authService.checkLogin({ password: ctx.request.body.password, login: ctx.request.body.login })
+  if (result) {
+    token = await authService.regenJwtPairByLogin({ login, group: result.group })
   }
   ctx.response.body = responseFormat({
-    error: err ? error.loginError : null,
+    error: result ? error.loginError : null,
     token,
     data: null
   })
-  ctx.status = (!err) ? 200 : 511
+  ctx.status = (!result) ? 200 : 511
 };
 
 export async function doAuth (ctx, next) {
   const { authService } = ctx.inject
   const { access, accept } = ctx.request.header
   if (access) {
-    const { error, login } = await authService.checkToken({ token: access })
+    const { error, login, group } = await authService.checkToken({ token: access })
     if (error) {
       ctx.status = 511
     } else {
       ctx.inject.login = login
       await next()
       if (accept !== 'text/event-stream') {
-        if (!ctx.response?.body?.meta) {
+        if (!ctx.response?.body) {
           ctx.response.body = {
             meta: {
               token: {}
             }
           }
         }
-
-        ctx.response.body.meta.token = await authService.regenJwtPairByLogin({ login })
+        if (!ctx.response.body?.meta) {
+          ctx.response.body.meta = {}
+        }
+        ctx.response.body.meta.token = await authService.regenJwtPairByLogin({ login, group })
       }
     }
   } else { ctx.status = 401 }
+}
+export async function isAdmin (ctx, next) {
+  const { authService } = ctx.inject
+  const { access } = ctx.request.header
+  if (access) {
+    const { group } = await authService.checkToken({ token: access })
+    if (group === 'admin') {
+      await next()
+      return
+    }
+  }
+  ctx.status = 405
 }
 export async function whoAmi (ctx) {
   const { login, authService } = ctx.inject
@@ -65,5 +79,47 @@ export async function regenToken (ctx) {
     ctx.status = 200
   } else {
     ctx.status = 401
+  }
+}
+
+export async function createUser (ctx) {
+  const { authRepository } = ctx.inject
+  await authRepository.createUser(ctx.request.body).then(() => {
+    ctx.status = 204
+  }).catch(() => {
+    ctx.status = 406
+  })
+}
+
+export async function changeUserData (ctx) {
+  const { authRepository } = ctx.inject
+  await authRepository.changeUserData(ctx.request.body).then(() => {
+    ctx.status = 204
+  }).catch(() => {
+    ctx.status = 406
+  })
+}
+
+export async function changeUserGroup (ctx) {
+  const { authRepository } = ctx.inject
+  await authRepository.changeUserGroup(ctx.request.body).then(() => {
+    ctx.status = 204
+  }).catch(() => {
+    ctx.status = 406
+  })
+}
+
+export async function getUser (ctx) {
+  const { authRepository } = ctx.inject
+  const { login } = ctx.request.body
+  try {
+    const result = ((login)
+      ? [await authRepository.findUserByLogin({ login })]
+      : await authRepository.getUserList({ login })).map(({ password, ...all }) => all)
+    ctx.status = 200
+    ctx.response.body = responseFormat({ data: result })
+  } catch (e) {
+    console.log(e)
+    ctx.status = 406
   }
 }

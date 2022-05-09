@@ -7,6 +7,7 @@ module.exports = {
     "database": "database_development",
     "storage": process.env.DB_PATH,
     "dialect": "sqlite",
+    logging:false,
     define: {
       freezeTableName: true,
     }
