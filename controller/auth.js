@@ -12,11 +12,11 @@ export async function login (ctx) {
     token = await authService.regenJwtPairByLogin({ login, group: result.group })
   }
   ctx.response.body = responseFormat({
-    error: result ? error.loginError : null,
+    error: !result ? error.loginError : null,
     token,
     data: null
   })
-  ctx.status = (!result) ? 200 : 511
+  ctx.status = (result) ? 200 : 511
 };
 
 export async function doAuth (ctx, next) {

@@ -17,21 +17,22 @@ import LastEventRepository from './repositories/lastEvent.js'
 import AuthService from './service/auth.js'
 import SensorService from './service/sensor.js'
 import EventService from './service/event.js'
+import { JobService } from './service/job.js'
 
 async function run () {
   const modelDb = await dbService.init()
   const context = {
-    sensorRepository:new SensorRepository(modelDb),
-    eventRepository:new EventRepository(modelDb),
-    lastEventRepository:new LastEventRepository(modelDb),
+    sensorRepository: new SensorRepository(modelDb),
+    eventRepository: new EventRepository(modelDb),
+    lastEventRepository: new LastEventRepository(modelDb),
     authRepository: new AuthRepository(modelDb)
   }
-  context.sensorService=new SensorService(context)
+  context.sensorService = new SensorService(context)
   context.authService = new AuthService(context)
   context.eventService = new EventService(context)
-  context.deviceService=deviceServiceFactory(context)
-  context.mqttService=new MqttService(context)
-
+  context.deviceService = deviceServiceFactory(context)
+  context.mqttService = new MqttService(context)
+  const jobService = new JobService(context)
   const { PORT = 8080, HTTP2_MODE } = process.env
   const pubRouter = router()
   const app = new Koa()
@@ -71,6 +72,7 @@ async function run () {
       .listen(PORT, () => console.log('listening on port %i', PORT))
   } else { app.listen(PORT, () => console.log('listening on port %i', PORT)) }
 
+  jobService.start()
   context.mqttService.run()
 }
 run()

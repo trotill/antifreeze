@@ -32,7 +32,6 @@ rebootAF
 rebootFD
    */
 
-
   async init () {
     await this.lastEventRepository.init()
   }
@@ -45,7 +44,7 @@ rebootFD
     return this.lastEventRepository.readLastEvent()
   }
 
-  async readEvent ({ where = { }, limit = 1000, offset = 0, order = 'asc' }) {
+  async readEvent ({ where = { }, limit = 1000, offset = 0, order = 'asc' } = {}) {
     return this.eventRepository.getList({ where, limit, offset, order: [['id', order]] })
   }
 
@@ -55,18 +54,19 @@ rebootFD
 
   async admEventFD ({ rebootCntr }) {
     const ts = Date.now()
-    const rebootFD=((rebootCntr!==this.rebootCntrFD)&&(this.rebootCntrFD!==null))
-    this.rebootCntrFD=rebootCntr
+    const rebootFD = ((rebootCntr !== this.rebootCntrFD) && (this.rebootCntrFD !== null))
+    this.rebootCntrFD = rebootCntr
     const state = {
       rebootFD
     }
     const changedState = await this.lastEventRepository.addLastEvent({ ts, state })
     await this.eventRepository.addList({ changedState })
   }
-  async admEventAF ({ relay, powerLoss, ac0, device, autoMode, pumpWork,rebootCntr }) {
+
+  async admEventAF ({ relay, powerLoss, ac0, device, autoMode, pumpWork, rebootCntr }) {
     const ts = Date.now()
-    const rebootAF=((rebootCntr!==this.rebootCntrAF)&&(this.rebootCntrAF!==null))
-    this.rebootCntrAF=rebootCntr
+    const rebootAF = ((rebootCntr !== this.rebootCntrAF) && (this.rebootCntrAF !== null))
+    this.rebootCntrAF = rebootCntr
     const state = {
       highVolt: {
         state: (ac0.voltage > constData.highVoltage) ? ac0.voltage : null,

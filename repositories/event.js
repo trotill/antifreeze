@@ -1,5 +1,6 @@
-import eventList from '../api/eventList.js'
+
 import { Sequelize } from 'sequelize'
+import { reduceSequelizeResponse } from '../api/response.js'
 
 export default class EventRepository {
   constructor (db) {
@@ -8,7 +9,15 @@ export default class EventRepository {
   }
 
   async getList ({ where, limit, offset, order }) {
-    return this.model.findAll({ where, limit, offset, order }).then(r => r.map(item => item.toJSON()))
+    const rawResponse = await this.model.findAll({
+      where,
+      limit,
+      offset,
+      order,
+      raw: true,
+      attributes: ['id', 'ts', 'eventId', 'status', 'read', 'deviceId', 'prio', 'value']
+    })
+    return reduceSequelizeResponse(rawResponse)
   }
 
   async addList ({ changedState }) {
@@ -21,6 +30,7 @@ export default class EventRepository {
   }
 
   async removeOldest (limit) {
+    console.log('event remove oldest data from DB')
     const SQL = `
       DELETE FROM event where id <= (
           SELECT id

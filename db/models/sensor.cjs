@@ -17,7 +17,11 @@ module.exports = (sequelize, DataTypes) => {
     power: DataTypes.FLOAT,
     current: DataTypes.FLOAT,
     temp: DataTypes.FLOAT,
-    humidity: DataTypes.FLOAT
+    humidity: DataTypes.FLOAT,
+    avgSec10:DataTypes.INTEGER,
+    avgMin:DataTypes.INTEGER,
+    avgHour:DataTypes.INTEGER,
+    avgDay:DataTypes.INTEGER,
   }, {
     sequelize,
     modelName: 'sensor',
