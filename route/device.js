@@ -25,7 +25,7 @@ const deviceRoute = [
     handler: [doAuth, isAdmin, sendDataMQ]
   },
   {
-    method: 'get',
+    method: 'post',
     path: '/api/eventLast',
     validate: {
       output: {
@@ -37,7 +37,7 @@ const deviceRoute = [
     handler: [doAuth, getLastEvent]
   },
   {
-    method: 'get',
+    method: 'post',
     path: '/api/eventList',
     validate: {
       type: 'json',
@@ -51,7 +51,7 @@ const deviceRoute = [
     handler: [doAuth, getListEvent]
   },
   {
-    method: 'get',
+    method: 'post',
     path: '/api/sensorList',
     validate: {
       type: 'json',
@@ -62,18 +62,6 @@ const deviceRoute = [
   {
     method: 'put',
     path: '/api/eventMark/:id',
-    handler: [doAuth, sendDataMQ]
-  },
-  {
-    method: 'get',
-    path: '/api/sensorList',
-    validate: {
-      output: {
-        200: {
-          body: postSetDevDataBodyOut
-        }
-      }
-    },
     handler: [doAuth, sendDataMQ]
   }]
 

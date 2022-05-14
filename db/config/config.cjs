@@ -4,6 +4,7 @@ const { Op } = require("sequelize");
 operatorsAliases= {
   $gte: Op.gte,//>=
   $lte: Op.lte,//<=
+  $ne:Op.ne,//!==
   $notIn:Op.notIn,//not in
   $between:Op.between,
   $notBetween:Op.notBetween
