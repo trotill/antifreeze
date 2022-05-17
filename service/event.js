@@ -44,17 +44,21 @@ rebootFD
     return this.lastEventRepository.readLastEvent()
   }
 
-  async readEvent ({ where = { }, limit = 1000, offset = 0, order = 'asc' } = {}) {
-    return this.eventRepository.getList({ where, limit, offset, order: [['id', order]] })
+  async readEvent ({ where = { }, limit = 1000, offset = 0, order = [['id', 'asc']] } = {}) {
+    return this.eventRepository.getList({ where, limit, offset, order })
   }
 
   async removeOldest (limit) {
     return this.eventRepository.removeOldest(limit)
   }
 
+  async getUnreadCount () {
+    return this.eventRepository.getUnreadCount()
+  }
+
   async admEventFD ({ rebootCntr }) {
     const ts = Date.now()
-    const rebootFD = ((rebootCntr !== this.rebootCntrFD) && (this.rebootCntrFD !== null))
+    const rebootFD = !((rebootCntr !== this.rebootCntrFD) && (this.rebootCntrFD !== null))
     this.rebootCntrFD = rebootCntr
     const state = {
       rebootFD
@@ -65,7 +69,7 @@ rebootFD
 
   async admEventAF ({ relay, powerLoss, ac0, device, autoMode, pumpWork, rebootCntr }) {
     const ts = Date.now()
-    const rebootAF = ((rebootCntr !== this.rebootCntrAF) && (this.rebootCntrAF !== null))
+    const rebootAF = !((rebootCntr !== this.rebootCntrAF) && (this.rebootCntrAF !== null))
     this.rebootCntrAF = rebootCntr
     const state = {
       highVolt: {
@@ -89,14 +93,14 @@ rebootFD
           max: constData.highPower
         }
       },
-      lostRH: !device.relayHeaterAvail,
-      lostRP: !device.relayPumpAvail,
-      lostRM: !device.acAvail,
-      lost220V: powerLoss,
-      swOnPump: pumpWork,
-      swOnHeater: relay.heater,
+      lostRH: !!device.relayHeaterAvail,
+      lostRP: !!device.relayPumpAvail,
+      lostPM: !!device.acAvail,
+      lost220V: !powerLoss,
+      swOnPump: !pumpWork,
+      swOnHeater: !relay.heater,
       algoState: {
-        state: autoMode.state,
+        state: (autoMode.state > 0) ? autoMode.state : null,
         info: {
           value: autoMode.state
         }
@@ -104,7 +108,9 @@ rebootFD
       rebootAF
     }
 
+    // console.log('this', this)
     const changedState = await this.lastEventRepository.addLastEvent({ ts, state })
     await this.eventRepository.addList({ changedState })
+    return changedState
   }
 }

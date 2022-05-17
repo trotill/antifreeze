@@ -17,12 +17,12 @@ const mockDataAF = [
     device: { relayHeaterAvail: 1, relayPumpAvail: 1, acAvail: 1, pumpWorkTime: 1300, heaterWorkTime: 3700, pumpMaxPower: 1200 },
     autoMode: { mode: 0, state: 0 },
     pumpWork: 0,
-    rebootCntr:100,
+    rebootCntr: 100
   }
 ]
 const mockDataFD = [
   {
-    rebootCntr:100,
+    rebootCntr: 100
   }]
 describe('event service test', async function () {
   let queryInterface
@@ -46,36 +46,34 @@ describe('event service test', async function () {
     await eventInstance.admEventAF(mockDataAF[0])
     mockDataAF[0].ac0.voltage = 180
     await eventInstance.admEventAF(mockDataAF[0])
-    const result=await eventInstance.readLastEvent()
-    const founded=result.find(({eventId,status})=>((eventId==='lowVolt')&&status))
-    expect(founded.status).be.eql(true)
+    const result = await eventInstance.readLastEvent()
+    const founded = result.find(({ eventId, status }) => ((eventId === 'lowVolt') && !status))
+    expect(founded.status).be.eql(false)
   })
   it('add events (admEventFD)', async () => {
     await eventInstance.admEventFD(mockDataFD[0])
     mockDataFD[0].rebootCntr = 180
     await eventInstance.admEventFD(mockDataFD[0])
-    const result= await eventInstance.readLastEvent()
-    const founded=result.find(({eventId,status})=>((eventId==='rebootFD')&&status))
-    expect(founded.status).be.eql(true)
+    const result = await eventInstance.readLastEvent()
+    const founded = result.find(({ eventId, status }) => ((eventId === 'rebootFD') && !status))
+    expect(founded.status).be.eql(false)
   })
   it('read events from db (readEvent)', async () => {
     const result = await eventInstance.readEvent({
       where: {
         status: 0
       },
-      offset: 1,
-      limit: 3,
-      order: 'asc'
+      order: [['id', 'asc']]
     })
-    expect(result.length).be.eql(3)
-    expect(result[0].eventId).be.eql('lowVolt')
+    expect(result.list.id.length).be.eql(2)
+    expect(result.list.eventId[0]).be.eql('lowVolt')
     console.log(result)
   })
   it('read last events (readLastEvent)', async () => {
     const result = await eventInstance.readLastEvent()
     expect(result[1]).be.deep.include({
       eventId: 'lowVolt',
-      status: true
+      status: false
     })
   })
   it('set readed status (setReadEvent)', async () => {
@@ -85,15 +83,17 @@ describe('event service test', async function () {
         read: 1
       }
     })
-    expect(result[0]).be.deep.include({
-      eventId: 'highVolt',
-      read: true
-    })
+    expect(result.list.read[0]).be.eq(1)
   })
+  it('get readed count (getUnreadCount)', async () => {
+    const count = await eventInstance.getUnreadCount()
+    expect(count).be.eq(13)
+  })
+
   it('remove obsolete (removeOldest)', async () => {
     await eventInstance.removeOldest(5)
     const result = await eventInstance.readEvent({})
-    expect(result.length).be.eql(5)
+    expect(result.list.id.length).be.eql(5)
   })
   after(async () => {
     await createLastEventMigration.down(queryInterface, Sequelize)

@@ -77,18 +77,21 @@ export const getEventListIn = Joi.object().keys({
   where: Joi.object(),
   limit: Joi.number(),
   offset: Joi.number(),
-  order: Joi.string()
+  order: Joi.array()
 })
 
 export const getEventListOut = responseFormatJoi(Joi.object().keys({
-  id: Joi.array().items(Joi.number()).required(),
-  ts: Joi.array().items(Joi.number()).required(),
-  eventId: Joi.array().items(Joi.string()).required(),
-  status: Joi.array().items(Joi.number()).required(),
-  read: Joi.array().items(Joi.number()).required(),
-  deviceId: Joi.array().items(Joi.string()).required(),
-  prio: Joi.array().items(Joi.number()).required(),
-  value: Joi.array().items(Joi.string()).required()
+  list: Joi.object().keys({
+    id: Joi.array().items(Joi.number()).required(),
+    ts: Joi.array().items(Joi.number()).required(),
+    eventId: Joi.array().items(Joi.string()).required(),
+    status: Joi.array().items(Joi.number()).required(),
+    read: Joi.array().items(Joi.number()).required(),
+    deviceId: Joi.array().items(Joi.string()).required(),
+    prio: Joi.array().items(Joi.number()).required(),
+    value: Joi.array().items(Joi.string()).required()
+  }).allow(null),
+  count: Joi.number()
 }))
 
 export const getEventLastOut = responseFormatJoi(Joi.array().items(Joi.object().keys({

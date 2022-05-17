@@ -17,7 +17,17 @@ export default class EventRepository {
       raw: true,
       attributes: ['id', 'ts', 'eventId', 'status', 'read', 'deviceId', 'prio', 'value']
     })
-    return reduceSequelizeResponse(rawResponse)
+    if (rawResponse.length) {
+      const count = await this.model.count({
+        where,
+        order
+      })
+
+      const reducedList = reduceSequelizeResponse(rawResponse)
+      return { list: reducedList, count }
+    } else {
+      return { list: null, count: 0 }
+    }
   }
 
   async addList ({ changedState }) {
@@ -27,6 +37,14 @@ export default class EventRepository {
 
   async setReadStatus (id) {
     await this.model.update({ read: true }, { where: { id } })
+  }
+
+  async getUnreadCount () {
+    return await this.model.count({
+      where: {
+        read: false
+      }
+    })
   }
 
   async removeOldest (limit) {

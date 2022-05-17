@@ -1,5 +1,12 @@
 import Joi from 'joi'
-import { getLastEvent, getListEvent, getListSensor, sendDataMQ } from '../controller/device.js'
+import {
+  getLastEvent,
+  getListEvent,
+  getListSensor,
+  sendDataMQ,
+  markEventRead,
+  getUnreadCount
+} from '../controller/device.js'
 import { doAuth, isAdmin } from '../controller/auth.js'
 import {
   getEventLastOut,
@@ -23,6 +30,17 @@ const deviceRoute = [
       }
     },
     handler: [doAuth, isAdmin, sendDataMQ]
+  },
+  // await eventInstance.markEventRead
+  {
+    method: 'post',
+    path: '/api/eventRead/:id',
+    handler: [doAuth, isAdmin, markEventRead]
+  },
+  {
+    method: 'get',
+    path: '/api/eventUnreadCount',
+    handler: [doAuth, getUnreadCount]
   },
   {
     method: 'post',
@@ -58,11 +76,6 @@ const deviceRoute = [
       body: getSensorListIn
     },
     handler: [doAuth, getListSensor]
-  },
-  {
-    method: 'put',
-    path: '/api/eventMark/:id',
-    handler: [doAuth, sendDataMQ]
   }]
 
 export { deviceRoute }

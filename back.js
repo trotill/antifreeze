@@ -27,11 +27,13 @@ async function run () {
     lastEventRepository: new LastEventRepository(modelDb),
     authRepository: new AuthRepository(modelDb)
   }
+  context.mqttService = new MqttService(context)
   context.sensorService = new SensorService(context)
   context.authService = new AuthService(context)
   context.eventService = new EventService(context)
+
   context.deviceService = deviceServiceFactory(context)
-  context.mqttService = new MqttService(context)
+
   const jobService = new JobService(context)
   const { PORT = 8080, HTTP2_MODE } = process.env
   const pubRouter = router()
@@ -73,6 +75,7 @@ async function run () {
   } else { app.listen(PORT, () => console.log('listening on port %i', PORT)) }
 
   jobService.start()
+  context.eventService.init()
   context.mqttService.run()
 }
 run()

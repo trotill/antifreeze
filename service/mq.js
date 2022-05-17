@@ -1,18 +1,19 @@
 import mqtt from 'mqtt'
-import SensorRepository from '../repositories/sensor.js'
 
 export default class MqttService {
     static afTopic='/srv/antiFreeze'
     static wdTopic='/srv/footerDog'
     static afDevTopic='/dev/antiFreeze'
     static wdDevTopic='/dev/footerDog'
+    static eventBroadMessage='eventBroad'
     externalClient= []
     constructor (ctx) {
-      this.sensorService = ctx.sensorService
-      this.eventService = ctx.eventService
+      this.ctx = ctx
     }
 
     run () {
+      const { sensorService, eventService } = this.ctx
+
       this.client = mqtt.connect(`mqtt://${process.env.MQTT_URL}`)
       this.client.on('disconnect', () => {
         console.log('disconnect mqtt')
@@ -35,23 +36,30 @@ export default class MqttService {
           }
         })
       })
-      this.client.on('message', (topic, payload) => {
+      this.client.on('message', async (topic, payload) => {
         const strPayload = payload.toString()
         const jsonPayload = JSON.parse(strPayload)
         switch (true) {
           case (topic === MqttService.afTopic): {
-            this.sensorService.addSensorData(jsonPayload)
-            this.eventService.admEventAF(jsonPayload)
+            sensorService.addSensorData(jsonPayload)
+            const changedState = await eventService.admEventAF(jsonPayload)
+            if (changedState.length) {
+              this.sendBroadcast({ payload: JSON.stringify(changedState) })
+            }
             break
           }
           case (topic === MqttService.wdTopic): {
-            this.eventService.admEventFD(jsonPayload)
+            eventService.admEventFD(jsonPayload)
             break
           }
         }
-        this.externalClient.forEach(({ send }) => {
-          send({ msg: strPayload, type: topic })
-        })
+        this.sendBroadcast({ payload: strPayload, type: topic })
+      })
+    }
+
+    sendBroadcast ({ payload, type = MqttService.eventBroadMessage }) {
+      this.externalClient.forEach(({ send }) => {
+        send({ msg: payload, type })
       })
     }
 
