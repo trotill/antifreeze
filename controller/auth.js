@@ -4,7 +4,6 @@ import { error } from '../api/error.js'
 
 export async function login (ctx) {
   const { authService } = ctx.inject
-  console.log('login', ctx.request.body)
   const { login } = ctx.request.body
   let token = null
   const result = await authService.checkLogin({ password: ctx.request.body.password, login: ctx.request.body.login })
