@@ -6,11 +6,11 @@ import {
   createUser,
   changeUserData,
   changeUserGroup,
-  getUser, isAdmin
+  getUser, isAdmin, getUserList
 } from '../controller/auth.js'
 
 import {
-  getRefreshToken, getUserIn, getUserOut,
+  getRefreshToken, getUserListOut, getUserOut,
   getWhoAmiBodyOut,
   postLoginBodyIn,
   postLoginBodyOut,
@@ -88,15 +88,25 @@ const authRoute = [
     method: 'get',
     path: '/api/user',
     validate: {
-      type: 'json',
-      body: getUserIn,
       output: {
         200: {
           body: getUserOut
         }
       }
     },
-    handler: [doAuth, isAdmin, getUser]
+    handler: [doAuth, getUser]
+  },
+  {
+    method: 'get',
+    path: '/api/userList',
+    validate: {
+      output: {
+        200: {
+          body: getUserListOut
+        }
+      }
+    },
+    handler: [doAuth, isAdmin, getUserList]
   }]
 
 export { authRoute }

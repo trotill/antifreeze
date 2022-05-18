@@ -42,8 +42,8 @@ export default class {
     }
   }
 
-  async getUserInfo ({ login }) {
-    return this.authRepository.findUserByLogin({ login })
+  async getUserInfo ({ login, disable = false }) {
+    return this.authRepository.findUserByLogin({ login, disable })
   }
 
   async checkJWT ({ token }) {

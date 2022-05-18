@@ -3,10 +3,11 @@ export default class AuthRepository {
     this.model = db.userModel
   }
 
-  async findUserByLogin ({ login }) {
+  async findUserByLogin ({ login, disable = false }) {
     return this.model.findOne({
       where: {
-        login
+        login,
+        disable
       }
     }).then((v) => v.toJSON())
   }
@@ -16,23 +17,26 @@ export default class AuthRepository {
   }
 
   async createUser (data) {
-    const { login, password, firstName = 'anonymous', lastName = 'anonymous', email = '' } = data
+    const { login, password, firstName = 'anonymous', lastName = 'anonymous', email = '', disable = false } = data
     return this.model.create({
       login,
       group: 'user',
       password,
       firstName,
       lastName,
-      email
+      email,
+      disable
     })
   }
 
-  async changeUserData ({ login, password = '', firstName = '', lastName = '', email = '' }) {
+  async changeUserData ({ login, password = '', firstName = '', lastName = '', email, disable }) {
     const updated = {}
     password && (updated.password = password)
     firstName && (updated.firstName = firstName)
     lastName && (updated.lastName = lastName)
-    email && (updated.email = email)
+    if (email !== undefined) updated.email = email
+    if (disable !== undefined) updated.disable = disable
+
     return this.model.update(updated, { where: { login } })
   }
 

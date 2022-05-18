@@ -28,6 +28,7 @@ export async function doAuth (ctx, next) {
       ctx.status = 511
     } else {
       ctx.inject.login = login
+      ctx.inject.group = group
       await next()
       if (accept !== 'text/event-stream') {
         if (!ctx.response?.body) {
@@ -46,10 +47,9 @@ export async function doAuth (ctx, next) {
   } else { ctx.status = 401 }
 }
 export async function isAdmin (ctx, next) {
-  const { authService } = ctx.inject
+  const { group } = ctx.inject
   const { access } = ctx.request.header
   if (access) {
-    const { group } = await authService.checkToken({ token: access })
     if (group === 'admin') {
       await next()
       return
@@ -92,7 +92,10 @@ export async function createUser (ctx) {
 }
 
 export async function changeUserData (ctx) {
-  const { authRepository } = ctx.inject
+  const { authRepository, group, login } = ctx.inject
+  if (group !== 'admin') {
+    ctx.request.body.login = login
+  }
   await authRepository.changeUserData(ctx.request.body).then(() => {
     ctx.status = 204
   }).catch(() => {
@@ -110,12 +113,21 @@ export async function changeUserGroup (ctx) {
 }
 
 export async function getUser (ctx) {
-  const { authRepository } = ctx.inject
-  const { login } = ctx.request.body
+  const { authRepository, login } = ctx.inject
   try {
-    const result = ((login)
-      ? [await authRepository.findUserByLogin({ login })]
-      : await authRepository.getUserList({ login })).map(({ password, ...all }) => all)
+    const result = await authRepository.findUserByLogin({ login })
+    ctx.status = 200
+    ctx.response.body = responseFormat({ data: result })
+  } catch (e) {
+    console.log(e)
+    ctx.status = 406
+  }
+}
+
+export async function getUserList (ctx) {
+  const { authRepository } = ctx.inject
+  try {
+    const result = (await authRepository.getUserList()).map(({ password, ...all }) => all)
     ctx.status = 200
     ctx.response.body = responseFormat({ data: result })
   } catch (e) {

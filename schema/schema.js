@@ -47,7 +47,8 @@ export const putUserIn = Joi.object().keys({
   password: Joi.string().max(userStrMaxLen).min(userStrMinLen),
   firstName: Joi.string().max(userStrMaxLen).min(1),
   lastName: Joi.string().max(userStrMaxLen).min(1),
-  email: Joi.string().max(userStrMaxLen).min(userStrMinLen).empty()
+  disable: Joi.boolean(),
+  email: Joi.string().max(userStrMaxLen).min(userStrMinLen).allow('')
 })
 
 export const putUserGroupIn = Joi.object().keys({
@@ -58,20 +59,20 @@ export const putUserGroupIn = Joi.object().keys({
   ).required()
 })
 
-export const getUserIn = Joi.object().keys({
-  login: Joi.string().max(userStrMaxLen).min(userStrMinLen)
-})
-
-export const getUserOut = responseFormatJoi(Joi.array().items(Joi.object().keys({
+const userData = Joi.object().keys({
   login: Joi.string().required(),
   group: Joi.string().required(),
   password: Joi.string(),
   firstName: Joi.string(),
   lastName: Joi.string(),
-  email: Joi.string().empty(),
+  email: Joi.string().allow(''),
   createdAt: Joi.date(),
-  updatedAt: Joi.date()
-})))
+  updatedAt: Joi.date(),
+  disable: Joi.boolean()
+})
+export const getUserOut = responseFormatJoi(userData)
+
+export const getUserListOut = responseFormatJoi(Joi.array().items(userData))
 
 export const getEventListIn = Joi.object().keys({
   where: Joi.object(),
