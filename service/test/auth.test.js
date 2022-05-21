@@ -4,6 +4,7 @@ import AuthRepository from '../../repositories/auth.js'
 import dbService from '../../db/dbService.cjs'
 import { Sequelize, Op } from 'sequelize'
 import createUserMigration from '../../db/migrations/00-create-user.cjs'
+import addUserDisable from '../../db/migrations/06-add-user-disable.cjs'
 import jwt from 'jsonwebtoken'
 import fs from 'fs'
 import path from 'path'
@@ -26,6 +27,7 @@ describe('auth service test', async function () {
     const { sequelize } = db
     queryInterface = sequelize.getQueryInterface()
     await createUserMigration.up(queryInterface, Sequelize)
+    await addUserDisable.up(queryInterface, Sequelize)
     authRepository = new AuthRepository(db)
     authService = new AuthService({ authRepository })
     publicKey = fs.readFileSync(path.resolve('key/public.pem')).toString()
@@ -34,6 +36,8 @@ describe('auth service test', async function () {
   it('createUser', async () => {
     await authRepository.createUser({
       login: 'admin',
+      group: 'admin',
+      disable: false,
       password: generatePassword({ login: 'admin', password: 'admin' }),
       firstName: 'first',
       lastName: 'last',

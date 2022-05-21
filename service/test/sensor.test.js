@@ -3,6 +3,7 @@ import SensorRepository from '../../repositories/sensor.js'
 import dbService from '../../db/dbService.cjs'
 import { Sequelize, Op } from 'sequelize'
 import createSensorMigration from '../../db/migrations/01-create-sensor.cjs'
+import addAvgSelSensor from '../../db/migrations/05-add-avg-sel-sensor.cjs'
 
 const { expect } = chai
 
@@ -15,6 +16,7 @@ describe('sensor repo test', async function () {
     const { sequelize } = db
     queryInterface = sequelize.getQueryInterface()
     await createSensorMigration.up(queryInterface, Sequelize)
+    await addAvgSelSensor.up(queryInterface, Sequelize)
     sensorRepository = new SensorRepository(db)
   })
 
@@ -32,7 +34,7 @@ describe('sensor repo test', async function () {
       limit: 1,
       order: 'desc'
     })
-    expect(result[0].voltage).be.eql(279)
+    expect(result.voltage[0]).be.eql(279)
   })
   it('read sensor data (read)', async () => {
     const result = await sensorRepository.getList({
@@ -45,15 +47,15 @@ describe('sensor repo test', async function () {
       limit: 3,
       order: 'asc'
     })
-    expect(result.length).be.eql(3)
-    expect(result[0].voltage).be.eql(251)
+    expect(result.voltage.length).be.eql(3)
+    expect(result.voltage[0]).be.eql(251)
     console.log(result)
   })
 
   it('remove obsolete (removeOldest)', async () => {
     await sensorRepository.removeOldest(50)
     const result = await sensorRepository.getList({})
-    expect(result.length).be.eql(50)
+    expect(result.ts.length).be.eql(50)
   })
   after(async () => {
     await createSensorMigration.down(queryInterface, Sequelize)
