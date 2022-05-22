@@ -1,7 +1,5 @@
 import Joi from 'joi'
 
-// import router from 'koa-joi-router';
-// const Joi = router.Joi;
 const userStrMaxLen = 200
 const userStrMinLen = 5
 const responseFormatJoi = (data) => Joi.object().keys({

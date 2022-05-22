@@ -31,14 +31,12 @@ export async function getLastEvent (ctx) {
 }
 
 export async function getListEvent (ctx) {
-  // readEvent ({ where = { }, limit = 1000, offset = 0, order = 'asc' })
   const { eventService } = ctx.inject
   ctx.response.body = responseFormat({ data: await eventService.readEvent(ctx.request.body) })
   ctx.status = 200
 }
 
 export async function getListSensor (ctx) {
-  // readEvent ({ where = { }, limit = 1000, offset = 0, order = 'asc' })
   const { sensorRepository } = ctx.inject
   ctx.response.body = responseFormat({ data: await sensorRepository.getList(ctx.request.body) })
   ctx.status = 200

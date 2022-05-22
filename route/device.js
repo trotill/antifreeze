@@ -31,7 +31,6 @@ const deviceRoute = [
     },
     handler: [doAuth, isAdmin, sendDataMQ]
   },
-  // await eventInstance.markEventRead
   {
     method: 'post',
     path: '/api/eventRead/:id',

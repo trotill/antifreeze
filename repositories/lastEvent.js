@@ -34,7 +34,7 @@ export default class LastEventRepository {
       if (status === this.sourceState[stateItem]) continue
 
       this.sourceState[stateItem] = status
-      // console.log(ts, stateItem, status, !!status, JSON.stringify(json), eventList[stateItem]?.prio ?? 100, 0, 0)
+
       const prepared = {
         ts,
         eventId: stateItem,

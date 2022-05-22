@@ -33,7 +33,6 @@ export default class {
         error: error.tokenError
       }
     } else {
-      console.log('good tokens')
       return {
         login: tokenDec.decoded.login,
         group: tokenDec.decoded.group,
@@ -71,7 +70,6 @@ export default class {
     const refreshDec = await this.checkJWT({ token: refresh })
     if (refreshDec.decoded) {
       const { login, group = 'user' } = refreshDec.decoded
-      console.log('good refresh token')
       const accessToken = jwt.sign({ login, group, type: 'access' }, this.privateKey, { algorithm: 'RS256', expiresIn: process.env.ACCESS_TIMEOUT })
       const refreshToken = jwt.sign({ login, group, type: 'refresh' }, this.privateKey, { algorithm: 'RS256', expiresIn: process.env.REFRESH_TIMEOUT })
       return {
