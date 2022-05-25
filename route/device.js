@@ -5,6 +5,7 @@ import {
   getListSensor,
   sendDataMQ,
   markEventRead,
+  markEventReadAll,
   getUnreadCount
 } from '../controller/device.js'
 import { doAuth, isAdmin } from '../controller/auth.js'
@@ -35,6 +36,11 @@ const deviceRoute = [
     method: 'post',
     path: '/api/eventRead/:id',
     handler: [doAuth, isAdmin, markEventRead]
+  },
+  {
+    method: 'post',
+    path: '/api/eventReadAll',
+    handler: [doAuth, isAdmin, markEventReadAll]
   },
   {
     method: 'get',

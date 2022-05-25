@@ -18,6 +18,11 @@ export async function markEventRead (ctx) {
   ctx.response.body = responseFormat({ data: await eventService.markEventRead({ id }) })
   ctx.status = 204
 }
+export async function markEventReadAll (ctx) {
+  const { eventService } = ctx.inject
+  ctx.response.body = responseFormat({ data: await eventService.markEventRead({ id: { $ne: null } }) })
+  ctx.status = 204
+}
 export async function getUnreadCount (ctx) {
   const { eventService } = ctx.inject
   ctx.response.body = responseFormat({ data: await eventService.getUnreadCount() })
