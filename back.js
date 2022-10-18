@@ -17,6 +17,7 @@ import AuthService from './service/auth.js'
 import SensorService from './service/sensor.js'
 import EventService from './service/event.js'
 import { JobService } from './service/job.js'
+import cors from '@koa/cors'
 
 async function run () {
   const modelDb = await dbService.init()
@@ -34,13 +35,13 @@ async function run () {
   context.deviceService = deviceServiceFactory(context)
 
   const jobService = new JobService(context)
-  const { PORT = 8080, HTTP2_MODE } = process.env
+  const { PORT = 8080, HTTP2_MODE, DISABLE_CORS } = process.env
   const pubRouter = router()
   const app = new Koa()
   pubRouter.route(authRoute)
   pubRouter.route(sseRoute)
   pubRouter.route(deviceRoute)
-
+  if (DISABLE_CORS === 'true') { app.use(cors()) }
   app.use(async (ctx, next) => {
     try {
       await next()
